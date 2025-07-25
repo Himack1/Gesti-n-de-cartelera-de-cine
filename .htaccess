@@ -1,0 +1,2 @@
+# Si usas URLs amigables, asegura que pase los parámetros
+RewriteRule ^reservar/([0-9]+)$ procesar_reserva.php?funcion=$1 [L,QSA]
