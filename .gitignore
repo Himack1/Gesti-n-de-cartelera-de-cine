@@ -1,0 +1,16 @@
+# Archivos temporales y de sistema
+Thumbs.db
+.DS_Store
+*.log
+error_log
+php_errors.log
+
+# Editores y entornos
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Archivos de respaldo temporales
+*.bak
+*.tmp

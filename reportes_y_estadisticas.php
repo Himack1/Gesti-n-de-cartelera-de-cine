@@ -10,7 +10,7 @@ $base_datos = "Cine";
 try {
     $conn = new PDO("sqlsrv:server=$servidor;Database=$base_datos", $usuario_db, $password_db);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
 }
 
@@ -29,29 +29,30 @@ $salas_query = "SELECT DISTINCT sala FROM Historial_Compras ORDER BY sala";
 $salas = $conn->query($salas_query)->fetchAll(PDO::FETCH_COLUMN);
 
 // Función para construir WHERE clause
-function construirFiltros($fecha_inicio, $fecha_fin, $pelicula, $sala, $dia_semana) {
+function construirFiltros($fecha_inicio, $fecha_fin, $pelicula, $sala, $dia_semana)
+{
     $condiciones = [];
     $parametros = [];
-    
+
     $condiciones[] = "fecha_compra BETWEEN ? AND ?";
     $parametros[] = $fecha_inicio . ' 00:00:00';
     $parametros[] = $fecha_fin . ' 23:59:59';
-    
+
     if (!empty($pelicula)) {
         $condiciones[] = "pelicula_titulo = ?";
         $parametros[] = $pelicula;
     }
-    
+
     if (!empty($sala)) {
         $condiciones[] = "sala = ?";
         $parametros[] = $sala;
     }
-    
+
     if (!empty($dia_semana)) {
         $condiciones[] = "DATEPART(weekday, fecha_compra) = ?";
         $parametros[] = $dia_semana;
     }
-    
+
     return [
         'where' => implode(' AND ', $condiciones),
         'params' => $parametros
@@ -250,6 +251,7 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -522,19 +524,183 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             .charts-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .filters-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+/*btn cartelera*/
+
+.cartelera-btn-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+/* Si prefieres que sea relativo en lugar de fijo, usa esta alternativa:
+.cartelera-btn-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+}
+*/
+
+.btn-cartelera {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    border: none;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.btn-cartelera:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(135deg, #ff5252 0%, #d63031 100%);
+}
+
+.btn-cartelera:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.btn-cartelera svg {
+    transition: transform 0.3s ease;
+}
+
+.btn-cartelera:hover svg {
+    transform: rotate(5deg) scale(1.1);
+}
+
+.btn-cartelera span {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Animación de entrada */
+.cartelera-btn-container {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .cartelera-btn-container {
+        top: 15px;
+        left: 15px;
+    }
+    
+    .btn-cartelera {
+        padding: 12px 16px;
+        font-size: 14px;
+        gap: 10px;
+    }
+    
+    .btn-cartelera svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-cartelera span {
+        display: none; /* Solo mostrar el ícono en móviles muy pequeños */
+    }
+    
+    .btn-cartelera {
+        padding: 12px;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        justify-content: center;
+    }
+}
+
+/* Efecto de pulso sutil para llamar la atención */
+.btn-cartelera::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 107, 107, 0.3);
+    border-radius: 15px;
+    transform: translate(-50%, -50%) scale(0);
+    animation: pulse 2s infinite;
+    z-index: -1;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* Asegurar que el botón tenga posición relativa para el pseudo-elemento */
+.btn-cartelera {
+    position: relative;
+    overflow: hidden;
+}
+
+
+
     </style>
 </head>
+
 <body>
     <div class="container">
+
+<div class="cartelera-btn-container">
+                <a href="perfil.php" class="btn-cartelera">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" />
+                        <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" />
+                        <circle cx="8" cy="9" r="2" stroke="currentColor" stroke-width="2" />
+                        <path d="M14 9L16 11L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Ver Perfil</span>
+                </a>
+            </div>
+
         <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-chart-line"></i> Reportes y Estadísticas</h1>
@@ -558,8 +724,8 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <select id="pelicula" name="pelicula">
                             <option value="">Todas las películas</option>
                             <?php foreach ($peliculas as $peli): ?>
-                                <option value="<?php echo htmlspecialchars($peli); ?>" 
-                                        <?php echo ($pelicula === $peli) ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($peli); ?>"
+                                    <?php echo ($pelicula === $peli) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($peli); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -570,8 +736,8 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <select id="sala" name="sala">
                             <option value="">Todas las salas</option>
                             <?php foreach ($salas as $s): ?>
-                                <option value="<?php echo htmlspecialchars($s); ?>" 
-                                        <?php echo ($sala === $s) ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($s); ?>"
+                                    <?php echo ($sala === $s) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($s); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -693,12 +859,12 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </thead>
                 <tbody>
                     <?php foreach ($top_peliculas as $pelicula): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($pelicula['pelicula_titulo']); ?></td>
-                        <td><?php echo number_format($pelicula['transacciones']); ?></td>
-                        <td><?php echo number_format($pelicula['entradas_vendidas']); ?></td>
-                        <td>$<?php echo number_format($pelicula['ingresos'], 2); ?></td>
-                    </tr>
+                        <tr>
+                            <td><?php echo htmlspecialchars($pelicula['pelicula_titulo']); ?></td>
+                            <td><?php echo number_format($pelicula['transacciones']); ?></td>
+                            <td><?php echo number_format($pelicula['entradas_vendidas']); ?></td>
+                            <td>$<?php echo number_format($pelicula['ingresos'], 2); ?></td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
@@ -706,34 +872,34 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Ventas de Combos -->
         <?php if (!empty($ventas_combos)): ?>
-        <div class="table-container">
-            <div class="export-buttons">
-                <button class="btn-export" onclick="exportarTabla('combos-table', 'ventas_combos.csv')">
-                    <i class="fas fa-download"></i> Exportar CSV
-                </button>
+            <div class="table-container">
+                <div class="export-buttons">
+                    <button class="btn-export" onclick="exportarTabla('combos-table', 'ventas_combos.csv')">
+                        <i class="fas fa-download"></i> Exportar CSV
+                    </button>
+                </div>
+                <h3 class="chart-title">Ventas de Snack Bar (Combos)</h3>
+                <table class="data-table" id="combos-table">
+                    <thead>
+                        <tr>
+                            <th>Combo</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Precio Promedio</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ventas_combos as $combo): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($combo['nombre_combo']); ?></td>
+                                <td><?php echo number_format($combo['cantidad_vendida']); ?></td>
+                                <td>$<?php echo number_format($combo['precio_promedio'], 2); ?></td>
+                                <td>$<?php echo number_format($combo['ingresos_combo'], 2); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <h3 class="chart-title">Ventas de Snack Bar (Combos)</h3>
-            <table class="data-table" id="combos-table">
-                <thead>
-                    <tr>
-                        <th>Combo</th>
-                        <th>Cantidad Vendida</th>
-                        <th>Precio Promedio</th>
-                        <th>Ingresos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($ventas_combos as $combo): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($combo['nombre_combo']); ?></td>
-                        <td><?php echo number_format($combo['cantidad_vendida']); ?></td>
-                        <td>$<?php echo number_format($combo['precio_promedio'], 2); ?></td>
-                        <td>$<?php echo number_format($combo['ingresos_combo'], 2); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
         <?php endif; ?>
 
         <!-- Análisis de Ocupación Detallado -->
@@ -758,15 +924,15 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </thead>
                 <tbody>
                     <?php foreach ($ocupacion_salas as $sala): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($sala['sala']); ?></td>
-                        <td><?php echo number_format($sala['total_reservas']); ?></td>
-                        <td><?php echo number_format($sala['funciones_unicas']); ?></td>
-                        <td><?php echo number_format($sala['asientos_individuales_vendidos']); ?></td>
-                        <td><?php echo number_format($sala['entradas_vendidas_historial']); ?></td>
-                        <td>$<?php echo number_format($sala['ingresos_por_asientos'] ?? 0, 2); ?></td>
-                        <td>$<?php echo number_format($sala['precio_promedio_asiento'] ?? 0, 2); ?></td>
-                    </tr>
+                        <tr>
+                            <td><?php echo htmlspecialchars($sala['sala']); ?></td>
+                            <td><?php echo number_format($sala['total_reservas']); ?></td>
+                            <td><?php echo number_format($sala['funciones_unicas']); ?></td>
+                            <td><?php echo number_format($sala['asientos_individuales_vendidos']); ?></td>
+                            <td><?php echo number_format($sala['entradas_vendidas_historial']); ?></td>
+                            <td>$<?php echo number_format($sala['ingresos_por_asientos'] ?? 0, 2); ?></td>
+                            <td>$<?php echo number_format($sala['precio_promedio_asiento'] ?? 0, 2); ?></td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
@@ -774,76 +940,76 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Top Asientos Populares -->
         <?php if (!empty($asientos_populares)): ?>
-        <div class="table-container">
-            <div class="export-buttons">
-                <button class="btn-export" onclick="exportarTabla('asientos-populares', 'asientos_populares.csv')">
-                    <i class="fas fa-download"></i> Exportar CSV
-                </button>
+            <div class="table-container">
+                <div class="export-buttons">
+                    <button class="btn-export" onclick="exportarTabla('asientos-populares', 'asientos_populares.csv')">
+                        <i class="fas fa-download"></i> Exportar CSV
+                    </button>
+                </div>
+                <h3 class="chart-title">Asientos Más Populares (Top 50)</h3>
+                <table class="data-table" id="asientos-populares">
+                    <thead>
+                        <tr>
+                            <th>Sala</th>
+                            <th>Asiento</th>
+                            <th>Veces Reservado</th>
+                            <th>Ingresos</th>
+                            <th>Precio Promedio</th>
+                            <th>Primera Reserva</th>
+                            <th>Última Reserva</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $contador = 0;
+                        foreach ($asientos_populares as $asiento):
+                            if ($contador >= 50) break;
+                            $contador++;
+                        ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($asiento['sala']); ?></td>
+                                <td><?php echo htmlspecialchars($asiento['asiento']); ?></td>
+                                <td><?php echo number_format($asiento['veces_reservado']); ?></td>
+                                <td>$<?php echo number_format($asiento['ingresos_asiento'], 2); ?></td>
+                                <td>$<?php echo number_format($asiento['precio_promedio'], 2); ?></td>
+                                <td><?php echo date('d/m/Y', strtotime($asiento['primera_reserva'])); ?></td>
+                                <td><?php echo date('d/m/Y', strtotime($asiento['ultima_reserva'])); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <h3 class="chart-title">Asientos Más Populares (Top 50)</h3>
-            <table class="data-table" id="asientos-populares">
-                <thead>
-                    <tr>
-                        <th>Sala</th>
-                        <th>Asiento</th>
-                        <th>Veces Reservado</th>
-                        <th>Ingresos</th>
-                        <th>Precio Promedio</th>
-                        <th>Primera Reserva</th>
-                        <th>Última Reserva</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    $contador = 0;
-                    foreach ($asientos_populares as $asiento): 
-                        if ($contador >= 50) break;
-                        $contador++;
-                    ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($asiento['sala']); ?></td>
-                        <td><?php echo htmlspecialchars($asiento['asiento']); ?></td>
-                        <td><?php echo number_format($asiento['veces_reservado']); ?></td>
-                        <td>$<?php echo number_format($asiento['ingresos_asiento'], 2); ?></td>
-                        <td>$<?php echo number_format($asiento['precio_promedio'], 2); ?></td>
-                        <td><?php echo date('d/m/Y', strtotime($asiento['primera_reserva'])); ?></td>
-                        <td><?php echo date('d/m/Y', strtotime($asiento['ultima_reserva'])); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
         <?php endif; ?>
 
         <!-- Análisis de Estados de Reserva -->
         <?php if (!empty($reservas_por_estado)): ?>
-        <div class="table-container">
-            <h3 class="chart-title">Análisis por Estado de Reservas</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Estado</th>
-                        <th>Cantidad</th>
-                        <th>Ingresos</th>
-                        <th>Promedio por Reserva</th>
-                        <th>Subtotal</th>
-                        <th>Impuestos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($reservas_por_estado as $estado): ?>
-                    <tr>
-                        <td><span class="badge badge-<?php echo $estado['estado']; ?>"><?php echo ucfirst($estado['estado']); ?></span></td>
-                        <td><?php echo number_format($estado['cantidad_reservas']); ?></td>
-                        <td>$<?php echo number_format($estado['ingresos_por_estado'], 2); ?></td>
-                        <td>$<?php echo number_format($estado['promedio_por_reserva'], 2); ?></td>
-                        <td>$<?php echo number_format($estado['subtotal_estado'], 2); ?></td>
-                        <td>$<?php echo number_format($estado['impuestos_estado'], 2); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+            <div class="table-container">
+                <h3 class="chart-title">Análisis por Estado de Reservas</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Cantidad</th>
+                            <th>Ingresos</th>
+                            <th>Promedio por Reserva</th>
+                            <th>Subtotal</th>
+                            <th>Impuestos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($reservas_por_estado as $estado): ?>
+                            <tr>
+                                <td><span class="badge badge-<?php echo $estado['estado']; ?>"><?php echo ucfirst($estado['estado']); ?></span></td>
+                                <td><?php echo number_format($estado['cantidad_reservas']); ?></td>
+                                <td>$<?php echo number_format($estado['ingresos_por_estado'], 2); ?></td>
+                                <td>$<?php echo number_format($estado['promedio_por_reserva'], 2); ?></td>
+                                <td>$<?php echo number_format($estado['subtotal_estado'], 2); ?></td>
+                                <td>$<?php echo number_format($estado['impuestos_estado'], 2); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
 
@@ -914,7 +1080,7 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         new Chart(ctxTopPeliculas, {
             type: 'bar',
             data: {
-                labels: topPeliculas.map(p => p.pelicula_titulo.length > 20 ? 
+                labels: topPeliculas.map(p => p.pelicula_titulo.length > 20 ?
                     p.pelicula_titulo.substring(0, 20) + '...' : p.pelicula_titulo),
                 datasets: [{
                     label: 'Ingresos',
@@ -1058,13 +1224,13 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         function exportarTabla(tableId, filename) {
             const table = document.getElementById(tableId);
             let csv = [];
-            
+
             // Obtener headers
             const headers = [];
             const headerCells = table.querySelectorAll('thead th');
             headerCells.forEach(cell => headers.push(cell.textContent.trim()));
             csv.push(headers.join(','));
-            
+
             // Obtener datos
             const rows = table.querySelectorAll('tbody tr');
             rows.forEach(row => {
@@ -1078,12 +1244,14 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 });
                 csv.push(rowData.join(','));
             });
-            
+
             // Crear y descargar archivo
             const csvContent = csv.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const link = document.createElement('a');
-            
+
             if (link.download !== undefined) {
                 const url = URL.createObjectURL(blob);
                 link.setAttribute('href', url);
@@ -1111,12 +1279,15 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body {
             background: white !important;
         }
+
         .filters-section {
             display: none;
         }
+
         .export-buttons {
             display: none;
         }
+
         .chart-container,
         .stat-card,
         .table-container {
@@ -1126,4 +1297,5 @@ $mix_productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </body>
+
 </html>
